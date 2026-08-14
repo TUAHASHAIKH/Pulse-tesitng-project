@@ -47,6 +47,27 @@ app.get('/api/todos', async (req, res) => {
     }
 });
 
+app.get('/api/todos/summary', async (req, res) => {
+    try {
+        const [total, completed, latestTodo] = await Promise.all([
+            Todo.countDocuments(),
+            Todo.countDocuments({ completed: true }),
+            Todo.findOne().sort({ timestamp: -1 }),
+        ]);
+
+        res.json({
+            total,
+            completed,
+            pending: total - completed,
+            latestTodo: latestTodo ? latestTodo.title : null,
+            latestTimestamp: latestTodo ? latestTodo.timestamp : null,
+        });
+    } catch (error) {
+        console.error('Error fetching todo summary:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 app.post('/api/todos', async (req, res) => {
     try {
         const { title } = req.body;

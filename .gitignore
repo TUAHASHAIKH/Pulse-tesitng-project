@@ -5,3 +5,7 @@ node_modules
 dist
 **/dist
 *.local
+
+# Pulse local data
+.pulse/
+
