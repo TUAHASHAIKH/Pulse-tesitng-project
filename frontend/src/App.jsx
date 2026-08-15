@@ -50,6 +50,16 @@ function App() {
     e.preventDefault();
     if (!title.trim()) return;
 
+    if (title.length > 50) {
+      alert('Todo title is too long');
+      return;
+    }
+
+    if (title.includes('<script>')) {
+      console.error('Potential XSS attack detected');
+      throw new Error('Invalid todo title');
+    }
+
     try {
       const res = await fetch('http://localhost:5000/api/todos', {
         method: 'POST',
