@@ -4,16 +4,29 @@ import './App.css';
 function App() {
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState('');
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
   const [activePage, setActivePage] = useState('tasks');
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
 
   const completedCount = todos.filter((todo) => todo.completed).length;
 
+  const filteredTodos = todos.filter((todo) => {
+    const matchesStatus =
+      filter === 'all' ||
+      (filter === 'active' && !todo.completed) ||
+      (filter === 'completed' && todo.completed);
+
+    const matchesSearch = todo.title.toLowerCase().includes(search.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
   useEffect(() => {
     const loadTodos = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/todos');
+        const query = filter === 'all' ? '' : `?status=${filter}`;
+        const res = await fetch(`http://localhost:5000/api/todos${query}`);
         const data = await res.json();
         setTodos(data);
       } catch (error) {
@@ -22,7 +35,7 @@ function App() {
     };
 
     loadTodos();
-  }, []);
+  }, [filter]);
 
   useEffect(() => {
     if (activePage !== 'insights') {
@@ -48,16 +61,13 @@ function App() {
 
   const addTodo = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    const normalizedTitle = title.trim();
 
-    if (title.length > 50) {
+    if (!normalizedTitle) return;
+
+    if (normalizedTitle.length > 50) {
       alert('Todo title is too long');
       return;
-    }
-
-    if (title.includes('<script>')) {
-      console.error('Potential XSS attack detected');
-      throw new Error('Invalid todo title');
     }
 
     try {
@@ -66,10 +76,15 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title: normalizedTitle }),
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || 'Unable to create todo');
+        return;
+      }
+
       setTodos((prev) => [data, ...prev]);
       setTitle('');
     } catch (error) {
@@ -143,6 +158,41 @@ function App() {
               <button type="submit">Add task</button>
             </form>
 
+            <div className="toolbar">
+              <div className="filter-group" role="tablist" aria-label="Todo filters">
+                <button
+                  type="button"
+                  className={filter === 'all' ? 'filter-btn active' : 'filter-btn'}
+                  onClick={() => setFilter('all')}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  className={filter === 'active' ? 'filter-btn active' : 'filter-btn'}
+                  onClick={() => setFilter('active')}
+                >
+                  Active
+                </button>
+                <button
+                  type="button"
+                  className={filter === 'completed' ? 'filter-btn active' : 'filter-btn'}
+                  onClick={() => setFilter('completed')}
+                >
+                  Done
+                </button>
+              </div>
+
+              <input
+                className="search-input"
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search tasks"
+                aria-label="Search tasks"
+              />
+            </div>
+
             <div className="stats">
               <div>
                 <span>{todos.length}</span>
@@ -159,13 +209,17 @@ function App() {
             </div>
 
             <ul className="todo-list">
-              {todos.length === 0 ? (
+              {filteredTodos.length === 0 ? (
                 <li className="empty-state">
-                  <strong>No tasks yet</strong>
-                  <p>Add your first task and begin your productive day.</p>
+                  <strong>No matching tasks</strong>
+                  <p>
+                    {search
+                      ? 'Try a different keyword or switch the filter.'
+                      : 'Add your first task and begin your productive day.'}
+                  </p>
                 </li>
               ) : (
-                todos.map((todo) => (
+                filteredTodos.map((todo) => (
                   <li key={todo._id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
                     <label className="todo-label">
                       <input
