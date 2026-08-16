@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
+import Calendar from './Calendar';
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -134,6 +135,13 @@ function App() {
           </button>
           <button
             type="button"
+            className={activePage === 'calendar' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setActivePage('calendar')}
+          >
+            Calendar
+          </button>
+          <button
+            type="button"
             className={activePage === 'insights' ? 'nav-btn active' : 'nav-btn'}
             onClick={() => setActivePage('insights')}
           >
@@ -141,7 +149,7 @@ function App() {
           </button>
         </div>
 
-        {activePage === 'tasks' ? (
+        {activePage === 'tasks' && (
           <>
             <div className="hero">
               <div className="hero-badge">✨ Daily Focus</div>
@@ -238,7 +246,9 @@ function App() {
               )}
             </ul>
           </>
-        ) : (
+        )}
+        {activePage === 'calendar' && <Calendar todos={todos} />}
+        {activePage === 'insights' && (
           <>
             <div className="hero">
               <div className="hero-badge hero-badge-alt">📊 Insights</div>
