@@ -10,6 +10,9 @@ function App() {
   const [activePage, setActivePage] = useState('tasks');
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [historyTodos, setHistoryTodos] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
 
   const completedCount = todos.filter((todo) => todo.completed).length;
 
@@ -59,6 +62,33 @@ function App() {
 
     loadSummary();
   }, [activePage, todos.length, completedCount]);
+
+  useEffect(() => {
+    if (activePage !== 'history') {
+      return;
+    }
+
+    const loadHistory = async () => {
+      setHistoryLoading(true);
+      setHistoryError(null);
+
+      try {
+        const res = await fetch('http://localhost:5000/api/todos');
+        const data = await res.json();
+        const sortedTodos = [...data].sort(
+          (firstTodo, secondTodo) => new Date(secondTodo.timestamp) - new Date(firstTodo.timestamp)
+        );
+        setHistoryTodos(sortedTodos);
+      } catch (error) {
+        console.error('Error loading history:', error);
+        setHistoryError('Failed to load history. Please try again later.');
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [activePage]);
 
   const addTodo = async (e) => {
     e.preventDefault();
@@ -146,6 +176,13 @@ function App() {
             onClick={() => setActivePage('insights')}
           >
             Insights
+          </button>
+          <button
+            type="button"
+            className={activePage === 'history' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setActivePage('history')}
+          >
+            History
           </button>
         </div>
 
@@ -289,6 +326,56 @@ function App() {
               <div className="empty-state">
                 <strong>No insights available</strong>
                 <p>Switch back to Tasks and add some items first.</p>
+              </div>
+            )}
+          </>
+        )}
+        {activePage === 'history' && (
+          <>
+            <div className="hero">
+              <div className="hero-badge hero-badge-history">↺ History</div>
+              <h1>Your task timeline</h1>
+              <p>Look back at every task you have added and see what is still in progress.</p>
+            </div>
+
+            {historyLoading ? (
+              <div className="empty-state">Loading history...</div>
+            ) : historyError ? (
+              <div className="empty-state">{historyError}</div>
+            ) : historyTodos.length === 0 ? (
+              <div className="empty-state">
+                <strong>Your history is empty</strong>
+                <p>Tasks you add will appear here in chronological order.</p>
+              </div>
+            ) : (
+              <div className="history-list">
+                {historyTodos.map((todo) => {
+                  const createdAt = new Date(todo.timestamp);
+                  const dateLabel = Number.isNaN(createdAt.getTime())
+                    ? 'Date unavailable'
+                    : createdAt.toLocaleString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      });
+
+                  return (
+                    <article key={todo._id} className={`history-item ${todo.completed ? 'completed' : ''}`}>
+                      <div className="history-marker" aria-hidden="true">
+                        {todo.completed ? '✓' : '•'}
+                      </div>
+                      <div className="history-content">
+                        <strong>{todo.title}</strong>
+                        <span>{dateLabel}</span>
+                      </div>
+                      <span className="history-status">
+                        {todo.completed ? 'Completed' : 'In progress'}
+                      </span>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </>

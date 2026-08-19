@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Security: never hardcode API keys/secrets here; load them via process.env (see dotenv.config() below).
+
 dotenv.config();
 
 app.use(cors());

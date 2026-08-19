@@ -63,6 +63,11 @@
   color: #0369a1;
 }
 
+.hero-badge-history {
+  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  color: #b45309;
+}
+
 .hero h1 {
   margin: 0 0 8px;
   font-size: 2rem;
@@ -302,6 +307,84 @@
   color: #475569;
 }
 
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.history-item.completed {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.history-marker {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff7ed;
+  color: #ea580c;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.history-item.completed .history-marker {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.history-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.history-content strong {
+  display: block;
+  overflow: hidden;
+  color: #0f172a;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item.completed .history-content strong {
+  color: #166534;
+}
+
+.history-content span {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.history-status {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.history-item.completed .history-status {
+  background: #dcfce7;
+  color: #15803d;
+}
+
 /* Calendar Styles */
 .calendar-container {
   margin-bottom: 20px;
@@ -511,6 +594,14 @@
 
   .insights-grid {
     grid-template-columns: 1fr;
+  }
+
+  .history-item {
+    align-items: flex-start;
+  }
+
+  .history-status {
+    font-size: 0.7rem;
   }
 
   .calendar-header {
